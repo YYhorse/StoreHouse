@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="green">#A1CF49</color>
+    <color name="whatchatgreen">#01861F</color>
+    <color name="white">#ffffff</color>
+    <color name="transparent">#00000000</color>
+    <color name="yellow">#ff9800</color>
+    <color name="black">#080808</color>
+    <color name="displayblack">#4C494D</color>
+    <color name="gary">#888888</color>
+    <color name="linegray">#DFDFDF</color>
+    <color name="red">#C31717</color>
+    <color name="blue">#2580C6</color>
+    <color name="facegreen">#15B293</color>
+    <color name="alipayblue">#01AAEF</color>
+    <color name="asiapay">#FF4DAF</color>
+</resources>
