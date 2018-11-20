@@ -30,8 +30,10 @@
         </activity>
         <activity
             android:name=".Activity.MainActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/MyTheme" />
+        <activity
+            android:name=".Activity.BarcodeActivity"
+            android:theme="@style/MyTheme" />
     </application>
 
 </manifest>

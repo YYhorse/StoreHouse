@@ -7,11 +7,13 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.storehouse.www.Activity.BarcodeActivity;
 import com.storehouse.www.Activity.MainActivity;
 import com.storehouse.www.R;
 import com.storehouse.www.Utils.Json.GoodsJson.GoodsJson;
 import com.storehouse.www.Utils.Json.ProductJson.ProductJson;
 import com.storehouse.www.Utils.PopMessage.PopMessageUtil;
+import com.storehouse.www.Utils.SwitchPage.SwitchUtil;
 
 import java.util.List;
 
@@ -75,7 +77,10 @@ public class ProductAdapter extends BaseAdapter {
         viewHolder.item_layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PopMessageUtil.showToastShort("Click" + productItemList.get(position).getProduct_name());
+                SwitchUtil.switchActivity(mContext, BarcodeActivity.class)
+                        .addString("ProductName",productItemList.get(position).getProduct_name())
+                        .addString("ProductId",String.valueOf(productItemList.get(position).getProduct_id()))
+                        .switchTo();
             }
         });
         return convertView;

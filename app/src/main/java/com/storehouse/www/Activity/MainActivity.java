@@ -17,6 +17,7 @@ import com.storehouse.www.Adapter.GoodsCategoryAdapter;
 import com.storehouse.www.Adapter.ProductAdapter;
 import com.storehouse.www.Application.PublicUrl;
 import com.storehouse.www.R;
+import com.storehouse.www.Utils.Animation.AnimationUtil;
 import com.storehouse.www.Utils.Datas.PrefUtils;
 import com.storehouse.www.Utils.HttpxUtils.HttpxUtils;
 import com.storehouse.www.Utils.HttpxUtils.SendCallBack;
@@ -42,7 +43,7 @@ public class MainActivity extends Activity {
     public List<ProductJson.GoodsCategory> goodsCategories;
     private GoodsCategoryAdapter goodsCategoryAdapter;
     private ListView goodsCategoryListview;
-    private int selectGoodsCategory = 0;
+    public int selectGoodsCategory = 0;
     //----商品和控件
     public List<GoodsJson.Product_Info> productList;
     private ProductAdapter productAdapter;
@@ -53,7 +54,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         initUi();
         ShowAndChooseShop();
-        GetGoodsCategoryList();
     }
 
     private void initUi() {
@@ -63,11 +63,13 @@ public class MainActivity extends Activity {
         user_name.setText(PrefUtils.getMemoryString("UserName"));
         //----商品种类
         goodsCategoryListview = (ListView) findViewById(R.id.GoodsCategory_Listview);
+        goodsCategoryListview.setLayoutAnimation(AnimationUtil.getAnimationController());               //添加切换动画
         goodsCategories = new ArrayList<ProductJson.GoodsCategory>();
         goodsCategoryAdapter = new GoodsCategoryAdapter(this, goodsCategories);
         goodsCategoryListview.setAdapter(goodsCategoryAdapter);
         //-----商品信息
         productListview = (ListView) findViewById(R.id.Goods_Listview);
+        productListview.setLayoutAnimation(AnimationUtil.getAnimationController());
         productList = new ArrayList<GoodsJson.Product_Info>();
         productAdapter = new ProductAdapter(this, productList);
         productListview.setAdapter(productAdapter);
@@ -98,6 +100,7 @@ public class MainActivity extends Activity {
                                 PrefUtils.setMemoryString("ShopName",ShopInfo.get(which).getStore_name());
                                 PrefUtils.setMemoryString("ShopId", String.valueOf(ShopInfo.get(which).getStore_id()));
                                 store_name.setText(PrefUtils.getMemoryString("ShopName"));
+                                GetGoodsCategoryList();
                                 dialog.dismiss();
                             }
                         }
@@ -157,20 +160,20 @@ public class MainActivity extends Activity {
     /***********************************************************************************************
      * * 功能说明：更新商品信息
      **********************************************************************************************/
-    private void UpdataGoodsShow(int goodsCategoryId){
+    public void UpdataGoodsShow(int goodsCategoryId){
         HttpxUtils.getHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
                 PopMessageUtil.Log("商品信息接口返回：" + result);
                 Gson gson = new Gson();
                 GoodsJson goodsJson = gson.fromJson(result,GoodsJson.class);
-//                if(goodsJson.getStatus_code() == 200){
+                if(goodsJson.getStatus_code() == 200){
                     //获取商品列表
                     productList = goodsJson.getProduct_info();
                     productAdapter.UpdataGoodsList(productList);
-//                }
-//                else
-//                    PopMessageUtil.showToastLong("获取商品列表接口错误"+goodsJson.getStatus_code());
+                }
+                else
+                    PopMessageUtil.showToastLong("获取商品列表接口错误"+goodsJson.getStatus_code());
             }
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
@@ -184,7 +187,7 @@ public class MainActivity extends Activity {
         }).setUrl(PublicUrl.GetGoods)
                 .addQueryStringParameter("store_token",PrefUtils.getMemoryString("StoreToken"))
                 .addQueryStringParameter("store_id",PrefUtils.getMemoryString("ShopId"))
-                .addQueryStringParameter("goods_categray_id",""+goodsCategoryId)
+                .addQueryStringParameter("goods_category_id",String.valueOf(goodsCategoryId))
                 .send();
     }
 }
