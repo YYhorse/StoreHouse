@@ -92,26 +92,29 @@ public class BarcodeActivity extends Activity{
     }
 
     private void UploadBarcode() {
-        BarcodeJson barcodeJson = new BarcodeJson();
-        barcodeJson.setStore_token(PrefUtils.getMemoryString("StoreToken"));
-        barcodeJson.setStore_id(Integer.parseInt(PrefUtils.getMemoryString("ShopId")));
-        barcodeJson.setProduct_id(Product_Id);
-        barcodeJson.setProduct_barcode(Barcode);
-        barcodeJson.setProduct_start_time(StartTime_txt.getText().toString());
-        barcodeJson.setProduct_end_time(EndTime_txt.getText().toString());
-        barcodeJson.setWarranty(Warranty_etxt.getText().toString());
-
-        Gson gson = new Gson();
-        String SendJson = gson.toJson(barcodeJson);
-        PopMessageUtil.Log(SendJson);
+        PopMessageUtil.Loading(BarcodeActivity.this,"上传条码中");
         HttpxUtils.postHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
+                PopMessageUtil.CloseLoading();
                 PopMessageUtil.Log("上传条码接口返回：" + result);
+                if(result.compareTo("{\"status_code\":200,\"info\":\"ok\"}")==0) {
+                    VoiceService.PlayVoice(0);
+                    PopMessageUtil.showToastShort("上传成功!");
+                }
+                else if(result.compareTo("{\"status_code\":300,\"info\":\"error\"}")==0){
+                    VoiceService.PlayVoice(1);
+                    PopMessageUtil.showToastShort("请勿重复添加!");
+                }
+                else{
+                    VoiceService.PlayVoice(1);
+                    PopMessageUtil.showToastLong("上传失败!"+result);
+                }
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
+                PopMessageUtil.CloseLoading();
                 VoiceService.PlayVoice(1);
                 PopMessageUtil.Log("服务器异常!" + ex.getMessage());
                 PopWindowMessage.PopWinMessage(BarcodeActivity.this, "服务器错误", "上传条码请求异常：" + ex.getMessage(), "error");
@@ -120,7 +123,13 @@ public class BarcodeActivity extends Activity{
             public void onCancelled(Callback.CancelledException cex) { }
             public void onFinished() { }
         }).setUrl(PublicUrl.UploadBarcode)
-                .addJsonParameter(SendJson)
+                .addBodyParameter("store_token",PrefUtils.getMemoryString("StoreToken"))
+                .addBodyParameter("store_id",PrefUtils.getMemoryString("ShopId"))
+                .addBodyParameter("product_id",Product_Id)
+                .addBodyParameter("product_barcode",Barcode)
+                .addBodyParameter("product_start_time",StartTime_txt.getText().toString())
+                .addBodyParameter("warranty",Warranty_etxt.getText().toString())
+                .addBodyParameter("product_end_time",EndTime_txt.getText().toString())
                 .send();
     }
 

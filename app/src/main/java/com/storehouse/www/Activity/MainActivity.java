@@ -112,6 +112,7 @@ public class MainActivity extends Activity {
      * * 功能说明：更新产品种类
      **********************************************************************************************/
     private void GetGoodsCategoryList(){
+        PopMessageUtil.Loading(MainActivity.this,"种类更新");
         HttpxUtils.getHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
@@ -131,10 +132,15 @@ public class MainActivity extends Activity {
                     //加载适配器
                     product_categroy.setAdapter(productcategroy_adapter);
                 }
+                else{
+                    PopMessageUtil.CloseLoading();
+                    PopMessageUtil.showToastLong("种类接口错误"+productJson.getStatus_code());
+                }
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
+                PopMessageUtil.CloseLoading();
                 VoiceService.PlayVoice(1);
                 PopMessageUtil.Log("服务器异常!" + ex.getMessage());
                 PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "登陆请求异常：" + ex.getMessage(), "error");
@@ -161,9 +167,11 @@ public class MainActivity extends Activity {
      * * 功能说明：更新商品信息
      **********************************************************************************************/
     public void UpdataGoodsShow(int goodsCategoryId){
+        PopMessageUtil.Loading(MainActivity.this,"获取商品列表");
         HttpxUtils.getHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
+                PopMessageUtil.CloseLoading();
                 PopMessageUtil.Log("商品信息接口返回：" + result);
                 Gson gson = new Gson();
                 GoodsJson goodsJson = gson.fromJson(result,GoodsJson.class);
@@ -177,6 +185,7 @@ public class MainActivity extends Activity {
             }
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
+                PopMessageUtil.CloseLoading();
                 VoiceService.PlayVoice(1);
                 PopMessageUtil.Log("服务器异常!" + ex.getMessage());
                 PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "登陆请求异常：" + ex.getMessage(), "error");

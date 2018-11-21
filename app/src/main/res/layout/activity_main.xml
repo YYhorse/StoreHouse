@@ -90,16 +90,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:text="选择种类" />
-
             <Spinner
                 android:id="@+id/ProductCategroy_spinner"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 android:layout_weight="1"
-                android:background="@color/white"
-                android:dropDownWidth="80dp"
+                android:background="@color/linegray"
+                android:dropDownWidth="match_parent"
                 android:popupBackground="@color/blue"
                 android:spinnerMode="dropdown" />
         </LinearLayout>
