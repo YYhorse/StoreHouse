@@ -160,10 +160,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
-                android:text="请选择"
                 android:textColor="@color/gary"
-                android:textSize="18dp"
-                />
+                android:textSize="18dp" />
             <ImageView
                 android:layout_width="15dp"
                 android:layout_height="15dp"
@@ -185,7 +183,6 @@
             >
 
             <TextView
-                android:id="@+id/Barcode_endtime_txt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
@@ -200,13 +197,12 @@
                 android:orientation="horizontal"></LinearLayout>
 
             <TextView
+                android:id="@+id/Barcode_endtime_txt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
-                android:text="请选择"
                 android:textColor="@color/gary"
-                android:textSize="18dp"
-                />
+                android:textSize="18dp" />
             <ImageView
                 android:layout_width="15dp"
                 android:layout_height="15dp"

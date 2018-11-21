@@ -7,14 +7,30 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.storehouse.www.Application.PublicUrl;
 import com.storehouse.www.Dialog.CalendarPickerDialog;
 import com.storehouse.www.R;
+import com.storehouse.www.Utils.Datas.PrefUtils;
+import com.storehouse.www.Utils.HttpxUtils.HttpxUtils;
+import com.storehouse.www.Utils.HttpxUtils.SendCallBack;
+import com.storehouse.www.Utils.Json.BarcodeJson.BarcodeJson;
+import com.storehouse.www.Utils.Json.Login.LoginRevJson;
+import com.storehouse.www.Utils.Json.Login.LoginSendJson;
+import com.storehouse.www.Utils.PopMessage.PopMessageUtil;
+import com.storehouse.www.Utils.PopMessage.PopWindowMessage;
 import com.storehouse.www.Utils.SwitchPage.SwitchUtil;
+import com.storehouse.www.Utils.VoiceService.VoiceService;
+import com.storehouse.www.Utils.sha256encrypt.SHA256Encrypt;
+
+import org.xutils.common.Callback;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class BarcodeActivity extends Activity{
     private TextView Name_txt,StartTime_txt,EndTime_txt;
     private EditText Warranty_etxt;
-    private String Product_Id;
+    private String Product_Id,Barcode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,11 +70,77 @@ public class BarcodeActivity extends Activity{
      * * 功能说明：扫码识别条码
      **********************************************************************************************/
     public void ClickScanBarcodeMethod(View view){
-
+        SwitchUtil.switchActivity(BarcodeActivity.this, ScanPayDialog.class)
+                .switchToForResult(1);
     }
 
     public void ClickBarcodeBackMethod(View view){
         SwitchUtil.FinishActivity(BarcodeActivity.this);
     }
 
+    //------------处理返回值------------//
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if(requestCode == 1){
+            //二维码支付识别
+            if(resultCode == RESULT_OK){
+                Barcode = intent.getStringExtra("BARCODE");
+                PopMessageUtil.Log("识别到条码："+Barcode);
+                ShowDialogMessage("提醒","是否添加条码:"+Barcode,0);
+            }
+        }
+    }
+
+    private void UploadBarcode() {
+        BarcodeJson barcodeJson = new BarcodeJson();
+        barcodeJson.setStore_token(PrefUtils.getMemoryString("StoreToken"));
+        barcodeJson.setStore_id(Integer.parseInt(PrefUtils.getMemoryString("ShopId")));
+        barcodeJson.setProduct_id(Product_Id);
+        barcodeJson.setProduct_barcode(Barcode);
+        barcodeJson.setProduct_start_time(StartTime_txt.getText().toString());
+        barcodeJson.setProduct_end_time(EndTime_txt.getText().toString());
+        barcodeJson.setWarranty(Warranty_etxt.getText().toString());
+
+        Gson gson = new Gson();
+        String SendJson = gson.toJson(barcodeJson);
+        PopMessageUtil.Log(SendJson);
+        HttpxUtils.postHttp(new SendCallBack() {
+            @Override
+            public void onSuccess(String result) {
+                PopMessageUtil.Log("上传条码接口返回：" + result);
+            }
+
+            @Override
+            public void onError(Throwable ex, boolean isOnCallback) {
+                VoiceService.PlayVoice(1);
+                PopMessageUtil.Log("服务器异常!" + ex.getMessage());
+                PopWindowMessage.PopWinMessage(BarcodeActivity.this, "服务器错误", "上传条码请求异常：" + ex.getMessage(), "error");
+                ex.printStackTrace();
+            }
+            public void onCancelled(Callback.CancelledException cex) { }
+            public void onFinished() { }
+        }).setUrl(PublicUrl.UploadBarcode)
+                .addJsonParameter(SendJson)
+                .send();
+    }
+
+    private SweetAlertDialog sweetAlertDialog;
+    private void ShowDialogMessage(String title,String context,int info_type){
+        sweetAlertDialog = new SweetAlertDialog(BarcodeActivity.this,info_type);
+        sweetAlertDialog
+                .setTitleText(title)
+                .setContentText(context)
+                .setConfirmText("确认")
+                .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sw) {
+                        sweetAlertDialog.cancel();
+                        sweetAlertDialog = null;
+                        UploadBarcode();
+                    }
+                })
+                .changeAlertType(info_type);
+        sweetAlertDialog.setCanceledOnTouchOutside(true);
+        sweetAlertDialog.show();
+    }
 }
