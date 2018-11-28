@@ -47,7 +47,6 @@ public class LoginActivity extends Activity {
         account_etxt = (AutoCompleteTextView) findViewById(R.id.account_etxt);
         LoginNow_layout = (LinearLayout) findViewById(R.id.LoginNow_layout);
         loginPanel = (LinearLayout) findViewById(R.id.loginPanel);
-
     }
 
     private void InitAccountView() {
@@ -122,6 +121,9 @@ public class LoginActivity extends Activity {
                 } else {
                     VoiceService.PlayVoice(1);
                     PopWindowMessage.PopWinMessage(LoginActivity.this, "接口错误", "登陆请求接口错误：" + result, "error");
+
+                    LoginNow_layout.setVisibility(View.GONE);
+                    loginPanel.setVisibility(View.VISIBLE);
                 }
             }
 

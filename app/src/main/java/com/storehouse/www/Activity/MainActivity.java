@@ -76,7 +76,6 @@ public class MainActivity extends Activity {
         //----产品种类响应
         product_categroy.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PopMessageUtil.showToastShort("选择的是"+position);
                 UpdataGoodsCategoryShow(position);
             }
             public void onNothingSelected(AdapterView<?> parent) {}
