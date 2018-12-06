@@ -3,6 +3,7 @@ package com.storehouse.www.Activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,11 +22,13 @@ import com.storehouse.www.Utils.Animation.AnimationUtil;
 import com.storehouse.www.Utils.Datas.PrefUtils;
 import com.storehouse.www.Utils.HttpxUtils.HttpxUtils;
 import com.storehouse.www.Utils.HttpxUtils.SendCallBack;
+import com.storehouse.www.Utils.Json.GoodsJson.GoodsBarcodeJson;
 import com.storehouse.www.Utils.Json.GoodsJson.GoodsJson;
 import com.storehouse.www.Utils.Json.Login.LoginRevJson;
 import com.storehouse.www.Utils.Json.ProductJson.ProductJson;
 import com.storehouse.www.Utils.PopMessage.PopMessageUtil;
 import com.storehouse.www.Utils.PopMessage.PopWindowMessage;
+import com.storehouse.www.Utils.SwitchPage.SwitchUtil;
 import com.storehouse.www.Utils.VoiceService.VoiceService;
 
 import org.xutils.common.Callback;
@@ -67,7 +70,7 @@ public class MainActivity extends Activity {
         goodsCategories = new ArrayList<ProductJson.GoodsCategory>();
         goodsCategoryAdapter = new GoodsCategoryAdapter(this, goodsCategories);
         goodsCategoryListview.setAdapter(goodsCategoryAdapter);
-        //-----商品信息
+        //----商品信息
         productListview = (ListView) findViewById(R.id.Goods_Listview);
         productListview.setLayoutAnimation(AnimationUtil.getAnimationController());
         productList = new ArrayList<GoodsJson.Product_Info>();
@@ -88,7 +91,7 @@ public class MainActivity extends Activity {
         final List<LoginRevJson.Store_Info> ShopInfo= gson.fromJson(shopInfo,new TypeToken<List<LoginRevJson.Store_Info>>(){}.getType());
         String[] shopName = new String[ShopInfo.size()];
         for(int i=0;i<ShopInfo.size();i++)
-            shopName[i] = ShopInfo.get(i).getStore_name();
+         shopName[i] = ShopInfo.get(i).getStore_name();
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_HOLO_LIGHT);
         builder.setTitle("请选择店铺")
                 .setIcon(android.R.drawable.ic_dialog_info)
@@ -96,7 +99,7 @@ public class MainActivity extends Activity {
                 .setSingleChoiceItems(shopName, 0,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                PrefUtils.setMemoryString("ShopName",ShopInfo.get(which).getStore_name());
+                                PrefUtils.setMemoryString("ShopName", ShopInfo.get(which).getStore_name());
                                 PrefUtils.setMemoryString("ShopId", String.valueOf(ShopInfo.get(which).getStore_id()));
                                 store_name.setText(PrefUtils.getMemoryString("ShopName"));
                                 GetGoodsCategoryList();
@@ -111,7 +114,7 @@ public class MainActivity extends Activity {
      * * 功能说明：更新产品种类
      **********************************************************************************************/
     private void GetGoodsCategoryList(){
-        PopMessageUtil.Loading(MainActivity.this,"种类更新");
+        PopMessageUtil.Loading(MainActivity.this, "种类更新");
         HttpxUtils.getHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
@@ -197,6 +200,67 @@ public class MainActivity extends Activity {
                 .addQueryStringParameter("store_id",PrefUtils.getMemoryString("ShopId"))
                 .addQueryStringParameter("goods_category_id",String.valueOf(goodsCategoryId))
                 .send();
+    }
+
+    /***********************************************************************************************
+     * * 功能说明：库存盘点
+     **********************************************************************************************/
+    public void ClickCheckMethod(View view){
+        SwitchUtil.switchActivity(MainActivity.this, ScanPayDialog.class).addString("key", "check").switchToForResult(2);
+    }
+
+    /***********************************************************************************************
+     * * 功能说明：库存盘点 获取条码对应商品信息
+     **********************************************************************************************/
+    private void GetGoodsInfoForBarcode(String barcode){
+        PopMessageUtil.Loading(MainActivity.this,"获取商品信息");
+        HttpxUtils.getHttp(new SendCallBack() {
+            @Override
+            public void onSuccess(String result) {
+                PopMessageUtil.CloseLoading();
+                PopMessageUtil.Log("商品条码信息接口返回：" + result);
+                Gson gson = new Gson();
+                GoodsBarcodeJson goodsBarcodeJson = gson.fromJson(result, GoodsBarcodeJson.class);
+                if (goodsBarcodeJson.getStatus_code() == 200) {
+                   //获取商品条码信息成功
+                    PopMessageUtil.showToastShort(goodsBarcodeJson.getProduct_name());
+                } else
+                    PopMessageUtil.showToastLong("获取商品条码信息错误" + goodsBarcodeJson.getStatus_code());
+            }
+
+            @Override
+            public void onError(Throwable ex, boolean isOnCallback) {
+                PopMessageUtil.CloseLoading();
+                VoiceService.PlayVoice(1);
+                PopMessageUtil.Log("服务器异常!" + ex.getMessage());
+                PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "登陆请求异常：" + ex.getMessage(), "error");
+                ex.printStackTrace();
+            }
+            public void onCancelled(Callback.CancelledException cex) {}
+            public void onFinished() {}
+        }).setUrl(PublicUrl.GetGoodsForBarcode)
+                .addQueryStringParameter("store_token",PrefUtils.getMemoryString("StoreToken"))
+                .addQueryStringParameter("product_barcode ",barcode)
+                .send();
+    }
+
+    /***********************************************************************************************
+     * * 功能说明：处理返回数据
+     **********************************************************************************************/
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == 1) {
+            //商品管理返回
+            if (resultCode == RESULT_OK) {
+                UpdataGoodsCategoryShow(0);
+            }
+        }
+        else if(requestCode == 2){
+            //盘点库存返回
+            if (resultCode == RESULT_OK) {
+                GetGoodsInfoForBarcode(intent.getStringExtra("BARCODE"));
+            }
+        }
     }
 }
 

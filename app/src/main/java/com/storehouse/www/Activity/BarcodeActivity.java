@@ -28,6 +28,7 @@ public class BarcodeActivity extends Activity {
     private TextView Name_txt, StartTime_txt, EndTime_txt;
     private EditText Warranty_etxt, Count_etxt;
     private String Product_Id, Barcode;
+    private boolean isUpdate = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +70,18 @@ public class BarcodeActivity extends Activity {
      * * 功能说明：扫码识别条码
      **********************************************************************************************/
     public void ClickScanBarcodeMethod(View view) {
-        SwitchUtil.switchActivity(BarcodeActivity.this, ScanPayDialog.class)
-                .switchToForResult(1);
+        if(Count_etxt.getText().length()!=0) {
+            SwitchUtil.switchActivity(BarcodeActivity.this, ScanPayDialog.class).addString("key","barcode").switchToForResult(1);
+        }
+        else
+            PopMessageUtil.showToastShort("商品数量不能为空!");
     }
 
     public void ClickBarcodeBackMethod(View view) {
-        SwitchUtil.FinishActivity(BarcodeActivity.this);
+        if(isUpdate)
+            SwitchUtil.switchActivity(BarcodeActivity.this,MainActivity.class).switchToFinishWithValue(RESULT_OK);
+        else
+            SwitchUtil.FinishActivity(BarcodeActivity.this);
     }
 
     //------------处理返回值------------//
@@ -111,6 +118,7 @@ public class BarcodeActivity extends Activity {
                 PopMessageUtil.CloseLoading();
                 PopMessageUtil.Log("上传条码接口返回：" + result);
                 if (result.compareTo("{\"status_code\":200,\"info\":\"ok\"}") == 0) {
+                    isUpdate = true;
                     VoiceService.PlayVoice(0);
                     PopMessageUtil.showToastShort("上传成功!");
                 } else if (result.compareTo("{\"status_code\":300,\"info\":\"error\"}") == 0) {

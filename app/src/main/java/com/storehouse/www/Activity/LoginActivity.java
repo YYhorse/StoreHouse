@@ -115,7 +115,6 @@ public class LoginActivity extends Activity {
 
                     String StoreInfo = gson.toJson(loginRevJson.getStore_info());
                     PrefUtils.setMemoryString("ShopInfo", StoreInfo);
-                    VoiceService.PlayVoice(0);
                     SavaAccountMethid(account_etxt.getText().toString());
                     SwitchUtil.switchActivity(LoginActivity.this, MainActivity.class).switchToAndFinish();
                 } else {

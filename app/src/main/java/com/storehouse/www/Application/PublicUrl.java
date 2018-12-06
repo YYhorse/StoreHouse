@@ -6,5 +6,6 @@ public class PublicUrl {
     public static String LoginUrl = HomeUrl + "/api/app/login";
     public static String GetProducts = HomeUrl + "/api/app/products";
     public static String GetGoods = HomeUrl + "/api/app/goods";
+    public static String GetGoodsForBarcode = HomeUrl + "/api/app/barcodeProduct";
     public static String UploadBarcode = HomeUrl + "/api/app/products/barcode";
 }

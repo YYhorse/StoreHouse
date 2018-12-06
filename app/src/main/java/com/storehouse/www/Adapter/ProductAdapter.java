@@ -80,7 +80,7 @@ public class ProductAdapter extends BaseAdapter {
                 SwitchUtil.switchActivity(mContext, BarcodeActivity.class)
                         .addString("ProductName",productItemList.get(position).getProduct_name())
                         .addString("ProductId",String.valueOf(productItemList.get(position).getProduct_id()))
-                        .switchTo();
+                        .switchToForResult(1);
             }
         });
         return convertView;

@@ -1,6 +1,7 @@
 package com.storehouse.www.Activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ public class ScanPayDialog extends Activity implements SurfaceHolder.Callback {
     private String characterSet;
     private EditText Scanpay_etxt;
     public static QRCallBack callBack = null;
+    private String KEY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +51,8 @@ public class ScanPayDialog extends Activity implements SurfaceHolder.Callback {
         int flags = WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         getWindow().addFlags(flags);
         initUi();
+        dealInter();
         dealScanInput();
-
     }
 
     private void initUi() {
@@ -62,14 +64,26 @@ public class ScanPayDialog extends Activity implements SurfaceHolder.Callback {
         inactivityTimer = new InactivityTimer(this);
     }
 
+    private void dealInter(){
+        Intent intent = new Intent();
+        KEY = intent.getStringExtra("key");
+    }
+
     private void dealScanInput() {
         Scanpay_etxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                PopMessageUtil.showToastShort(Scanpay_etxt.getText().toString());
-                SwitchUtil.switchActivity(ScanPayDialog.this, BarcodeActivity.class)
-                        .addString("BARCODE", Scanpay_etxt.getText().toString())
-                        .switchToFinishWithValue(RESULT_OK);
+//                PopMessageUtil.showToastShort(Scanpay_etxt.getText().toString());
+                if(KEY.compareTo("barcode")==0) {
+                    SwitchUtil.switchActivity(ScanPayDialog.this, BarcodeActivity.class)
+                            .addString("BARCODE", Scanpay_etxt.getText().toString())
+                            .switchToFinishWithValue(RESULT_OK);
+                }
+                else if(KEY.compareTo("check")==0){
+                    SwitchUtil.switchActivity(ScanPayDialog.this,MainActivity.class)
+                            .addString("BARCODE", Scanpay_etxt.getText().toString())
+                            .switchToFinishWithValue(RESULT_OK);
+                }
                 return false;
             }
         });
