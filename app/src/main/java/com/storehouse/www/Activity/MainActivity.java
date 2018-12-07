@@ -17,6 +17,7 @@ import com.google.gson.reflect.TypeToken;
 import com.storehouse.www.Adapter.GoodsCategoryAdapter;
 import com.storehouse.www.Adapter.ProductAdapter;
 import com.storehouse.www.Application.PublicUrl;
+import com.storehouse.www.Dialog.CommonSingelEditDialog;
 import com.storehouse.www.R;
 import com.storehouse.www.Utils.Animation.AnimationUtil;
 import com.storehouse.www.Utils.Datas.PrefUtils;
@@ -51,6 +52,8 @@ public class MainActivity extends Activity {
     public List<GoodsJson.Product_Info> productList;
     private ProductAdapter productAdapter;
     private ListView productListview;
+    //----盘点商品
+    private GoodsBarcodeJson goodsBarcodeJson;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -213,17 +216,21 @@ public class MainActivity extends Activity {
      * * 功能说明：库存盘点 获取条码对应商品信息
      **********************************************************************************************/
     private void GetGoodsInfoForBarcode(String barcode){
-        PopMessageUtil.Loading(MainActivity.this,"获取商品信息");
+        PopMessageUtil.Loading(MainActivity.this, "商品条码");
+        PopMessageUtil.Log("条码：" + barcode);
         HttpxUtils.getHttp(new SendCallBack() {
             @Override
             public void onSuccess(String result) {
                 PopMessageUtil.CloseLoading();
                 PopMessageUtil.Log("商品条码信息接口返回：" + result);
                 Gson gson = new Gson();
-                GoodsBarcodeJson goodsBarcodeJson = gson.fromJson(result, GoodsBarcodeJson.class);
+                goodsBarcodeJson = gson.fromJson(result, GoodsBarcodeJson.class);
                 if (goodsBarcodeJson.getStatus_code() == 200) {
-                   //获取商品条码信息成功
+                    //获取商品条码信息成功
                     PopMessageUtil.showToastShort(goodsBarcodeJson.getProduct_name());
+                    SwitchUtil.switchActivity(MainActivity.this, CommonSingelEditDialog.class)
+                            .addString("Type","CheckBarcode")
+                            .switchToForResult(3);
                 } else
                     PopMessageUtil.showToastLong("获取商品条码信息错误" + goodsBarcodeJson.getStatus_code());
             }
@@ -233,14 +240,55 @@ public class MainActivity extends Activity {
                 PopMessageUtil.CloseLoading();
                 VoiceService.PlayVoice(1);
                 PopMessageUtil.Log("服务器异常!" + ex.getMessage());
-                PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "登陆请求异常：" + ex.getMessage(), "error");
+                PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "商品条码请求异常：" + ex.getMessage(), "error");
                 ex.printStackTrace();
             }
+            public void onCancelled(Callback.CancelledException cex) { }
+            public void onFinished() { }
+        }).setUrl(PublicUrl.GetGoodsForBarcode)
+                .addQueryStringParameter("store_token", PrefUtils.getMemoryString("StoreToken"))
+                .addQueryStringParameter("product_barcode", barcode)
+                .send();
+    }
+
+    /***********************************************************************************************
+     * * 功能说明：库存盘点 上传盘点数目
+     **********************************************************************************************/
+    private void UploadCheckNumberMethod(String checkNumber){
+        PopMessageUtil.Loading(MainActivity.this, "上传盘点数中");
+        HttpxUtils.postHttp(new SendCallBack() {
+            @Override
+            public void onSuccess(String result) {
+                PopMessageUtil.CloseLoading();
+                PopMessageUtil.Log("上传盘点数接口返回：" + result);
+                if (result.compareTo("{\"status_code\":200,\"info\":\"ok\"}") == 0) {
+                    VoiceService.PlayVoice(0);
+                    PopMessageUtil.showToastShort("上传成功!");
+                } else if (result.compareTo("{\"status_code\":300,\"info\":\"error\"}") == 0) {
+                    VoiceService.PlayVoice(1);
+                    PopMessageUtil.showToastShort("请勿重复添加!");
+                } else {
+                    VoiceService.PlayVoice(1);
+                    PopMessageUtil.showToastLong("上传失败!" + result);
+                }
+            }
+
+            @Override
+            public void onError(Throwable ex, boolean isOnCallback) {
+                PopMessageUtil.CloseLoading();
+                VoiceService.PlayVoice(1);
+                PopMessageUtil.Log("服务器异常!" + ex.getMessage());
+                PopWindowMessage.PopWinMessage(MainActivity.this, "服务器错误", "上传盘点数接口异常：" + ex.getMessage(), "error");
+                ex.printStackTrace();
+            }
+
             public void onCancelled(Callback.CancelledException cex) {}
             public void onFinished() {}
-        }).setUrl(PublicUrl.GetGoodsForBarcode)
-                .addQueryStringParameter("store_token",PrefUtils.getMemoryString("StoreToken"))
-                .addQueryStringParameter("product_barcode ",barcode)
+        }).setUrl(PublicUrl.UploadCheck)
+                .addBodyParameter("store_token", PrefUtils.getMemoryString("StoreToken"))
+                .addBodyParameter("store_id",PrefUtils.getMemoryString("ShopId"))
+                .addBodyParameter("product_id",goodsBarcodeJson.getProduct_id())
+                .addBodyParameter("count",checkNumber)
                 .send();
     }
 
@@ -256,10 +304,14 @@ public class MainActivity extends Activity {
             }
         }
         else if(requestCode == 2){
-            //盘点库存返回
-            if (resultCode == RESULT_OK) {
+            //盘点二维码返回
+            if (resultCode == RESULT_OK)
                 GetGoodsInfoForBarcode(intent.getStringExtra("BARCODE"));
-            }
+        }
+        else if(requestCode == 3){
+            //盘点数返回
+            if(resultCode == RESULT_OK)
+                UploadCheckNumberMethod(intent.getStringExtra("Context"));
         }
     }
 }

@@ -73,8 +73,7 @@
                 android:background="@drawable/xqq_edit_login"
                 android:completionThreshold="1"
                 android:dropDownHorizontalOffset="20dp"
-                android:hint="请输入帐号"
-                android:text="123456789" />
+                android:hint="请输入帐号" />
 
             <EditText
                 android:id="@+id/password_etxt"
@@ -87,8 +86,7 @@
                 android:ems="10"
                 android:hint="请输入密码"
                 android:password="true"
-                android:singleLine="true"
-                android:text="user@123" />
+                android:singleLine="true" />
 
             <Button
                 android:id="@+id/login_btn"
